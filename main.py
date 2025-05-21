@@ -5,7 +5,7 @@ import json
 from bs4 import BeautifulSoup
 
 
-async def get_request(session, url):
+async def get_request(session, url): #асинхронный запрос 
     async with session.get(url) as response:
         return await response.text()
     
@@ -14,9 +14,9 @@ async def ria_news(session):
     url = 'https://ria.ru/'
     try:
         html = await get_request(session, url)
-        soup = BeautifulSoup(html, 'html.parser')
-        titles = [h3.text.strip() for h3 in soup.select('h3.gs-c-promo-heading__title')]
-        return {"source": "ria", "titles": titles[:5]}
+        soup = BeautifulSoup(html, 'html.parser') #парсим html код 
+        titles = [h3.text.strip() for h3 in soup.select('h3.gs-c-promo-heading__title')] 
+        return {"source": "ria", "titles": titles[:5]} # возвращаем первы 5 заголовков
     except Exception as e:
         print(f"Error parsing BBC: {e}")
         return {"source": "ria", "titles": []}
@@ -35,22 +35,22 @@ async def rbc_news(session):
     
     
     
-async def save_to_files(data):
+async def save_to_files(data): #сохраняем результат в json файл
     with open('new_title.json', 'w') as file: 
         json.dump(data, file, indent=2)
 
 async def main():
     start = time()
     
-    async with aiohttp.ClientSession() as session: 
+    async with aiohttp.ClientSession() as session: #запускаем клиентскую сессию
         tasks = [
-            ria_news(session),
+            ria_news(session), #список тасков 
             rbc_news(session)
         ]
         
-        results = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks) #запускаем конкурентно
     
-        await save_to_files(results)
+        await save_to_files(results) # сохраняем результат
         
         for result in results:
             print(f"\n--- {result['source']} ---")
